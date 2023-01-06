@@ -116,17 +116,16 @@ const resolvers = {
         return books
       }
     },
-    allAuthors: () => authors.map((author) => {
+    allAuthors: () => authors
+  },
+  Author: {
+    bookCount: (root) => {
       const getBookCount = () => {
-        const booksByAuthor = books.filter((book) => book.author === author.name)
+        const booksByAuthor = books.filter((book) => book.author === root.name)
         return booksByAuthor.length
       }
-
-      return {
-        name: author.name,
-        bookCount: getBookCount()
-      }
-    })
+      return getBookCount()
+    }
   }
 }
 
