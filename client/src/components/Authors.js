@@ -8,9 +8,7 @@ const Authors = ({ show }) => {
 
   const result = useQuery(ALL_AUTHORS)
 
-  const [ updateAuthor ] = useMutation(UPDATE_AUTHOR, {
-    refetchQueries: [ { query: ALL_AUTHORS } ]
-  })
+  const [ updateAuthor ] = useMutation(UPDATE_AUTHOR)
 
   const submit = async (event) => {
     event.preventDefault()
@@ -54,7 +52,7 @@ const Authors = ({ show }) => {
         <div>
           name{' '}
           <select 
-            value={name}
+            value={name ? name : setName(result.data.allAuthors[0].name)}
             onChange={({ target }) => setName(target.value)}
           >
           {result.data.allAuthors.map((a) => (
