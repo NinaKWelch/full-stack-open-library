@@ -52,14 +52,18 @@ const Authors = ({ show }) => {
       <h3>set birth year</h3>
       <form onSubmit={submit}>
         <div>
-          name
-          <input
+          name{' '}
+          <select 
             value={name}
             onChange={({ target }) => setName(target.value)}
-          />
+          >
+          {result.data.allAuthors.map((a) => (
+              <option key={a.id} value={a.name}>{a.name}</option>
+            ))}
+          </select>
         </div>
         <div>
-          born
+          born{' '}
           <input
             type="number"
             value={born}
@@ -70,7 +74,7 @@ const Authors = ({ show }) => {
           type="submit"
           disabled={name === '' || born === ''}
         >
-          create book
+          update author
         </button>
       </form>
     </div>
