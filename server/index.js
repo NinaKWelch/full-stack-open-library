@@ -48,6 +48,12 @@ const typeDefs = gql`
   }
 `
 
+const handleError = (message, args) => {
+  throw new UserInputError(message, {
+    invalidArgs: args,
+  })
+}
+
 const resolvers = {
   Query: {
     bookCount: async () => Book.collection.countDocuments(),
@@ -71,6 +77,7 @@ const resolvers = {
             books = await Book.find({ author: { $in: isAuthor._id } })
           }
         }
+        
         return books
       }
 
@@ -89,21 +96,13 @@ const resolvers = {
   },
   Mutation: {
     addBook: async (root, args) => {
-      const isBook = await Book.findOne({ title: args.title })
       const isAuthor = await Author.findOne({ name: args.author })
-
-      if (isBook) {
-        throw new UserInputError('Book must be unique', {
-          invalidArgs: args.title,
-        })
-      }
-
+      let author
+      
       // check if author already exists
       if (isAuthor) {
-        isAuthor.bookCount++
-        isAuthor.save()
-        const book = new Book({ ...args, author: isAuthor })
-        return book.save()
+        author = isAuthor
+        author.bookCount++
       }
 
       if (!isAuthor) {
@@ -112,22 +111,45 @@ const resolvers = {
           bookCount: 1
         }
   
-        const author = new Author(newAuthor)
-        author.save()
-  
-        const book = new Book({ ...args, author })
-        return book.save()
+        author = new Author(newAuthor)
+      }
+
+      if (author) {
+        try {
+          const updatedAuthor = await author.save()
+
+          if (updatedAuthor) {
+            const book = new Book({ ...args, author: updatedAuthor })
+
+            try {
+              await book.save()
+            } catch (err) {
+              handleError(err.message, args)
+            }
+
+            return book
+          }
+        } catch (err) {
+          handleError(err.message, args)
+        }
       }
     },
     editAuthor: async (root, args) => {
-      const isAuthor = await Author.findOne({ name: args.name })
+      const author = await Author.findOne({ name: args.name })
 
-      if (!isAuthor) {
+      if (!author) {
         return null
       }
 
       author.born = args.setBornTo
-      return author.save()
+
+      try {
+        await author.save()
+      } catch (err) {
+        handleError(err.message, args)
+      }
+
+      return author
     }
   }
 }
