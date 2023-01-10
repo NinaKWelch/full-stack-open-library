@@ -34,6 +34,10 @@ const LoginForm = ({ show, handleShow, handleError, setToken }) => {
     return <div>loading...</div>
   }
 
+  if (error) {
+    handleError(error.message)
+  }
+
   return (
     <div>
       <h2>LoginForm</h2>

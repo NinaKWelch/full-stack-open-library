@@ -1,48 +1,76 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@apollo/client'
-import { ALL_BOOKS } from '../queries'
+import { ALL_BOOKS, ALL_GENRES } from '../queries'
 
-const Books = ({ show }) => {
+const Books = ({ show, user, handleError }) => {
   const [author, setAuthor] = useState(null)
   const [genre, setGenre] = useState(null)
-
-  const { loading, error, data } = useQuery(ALL_BOOKS, {
+  const bookQuery = useQuery(ALL_BOOKS, {
     variables: {
       author: author,
       genre: genre,
     }
   })
+  const genreQuery = useQuery(ALL_GENRES)
+
+  useEffect(() => {
+    if (user) {
+      setGenre(user.favouriteGenre)
+    }
+  }, [user])
 
   if (!show) {
     return null
   }
 
-  if (loading) {
-    return <div>loading...</div>
+  if (bookQuery.error) {
+    handleError(bookQuery.error.message)
   }
 
   return (
     <div>
       <h2>books</h2>
-      {!data ? (
-        <p>No books</p>
+      {genre ? (
+        <p>
+          {user && user.favouriteGenre === genre ? 'books in your favorite genre' : 'in genre'}{' '}
+          <strong>{genre}</strong>
+        </p>
       ) : (
-        <table>
-        <tbody>
-          <tr>
-            <th></th>
-            <th>author</th>
-            <th>published</th>
-          </tr>
-          {data.allBooks.map((a) => (
-            <tr key={a.title}>
-              <td>{a.title}</td>
-              <td>{a.author.name}</td>
-              <td>{a.published}</td>
-            </tr>
+        <p>all books</p>
+      )}
+      {genreQuery.data && (
+        <div>
+          {genreQuery.data.allGenres.map((genre, index) => (
+            <button key={index} onClick={() => setGenre(genre)}>{genre}</button>
           ))}
-        </tbody>
-      </table>
+          <button onClick={() => setGenre(null)}>all books</button>
+        </div>
+      )}
+      {bookQuery.loading ? (
+        <div>loading...</div>
+      ) : (
+        <>
+          {!bookQuery.data ? (
+            <p>No books</p>
+          ) : (
+            <table>
+              <tbody>
+                <tr>
+                  <th></th>
+                  <th>author</th>
+                  <th>published</th>
+                </tr>
+                {bookQuery.data.allBooks.map((a) => (
+                  <tr key={a.title}>
+                    <td>{a.title}</td>
+                    <td>{a.author.name}</td>
+                    <td>{a.published}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </>
       )}
     </div>
   )

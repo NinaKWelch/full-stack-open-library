@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { useApolloClient } from '@apollo/client'
+import { useApolloClient, useQuery } from '@apollo/client'
+import { CURRENT_USER } from './queries'
 import Notify from './components/Notify'
 import Authors from './components/Authors'
 import Books from './components/Books'
@@ -11,8 +12,7 @@ const App = () => {
   const [page, setPage] = useState('authors')
   const [token, setToken] = useState(null)
   const client = useApolloClient()
-
-
+  const userQuery = useQuery(CURRENT_USER)
 
   const notify = (message) => {
     setErrorMessage(message)
@@ -25,6 +25,8 @@ const App = () => {
     setToken(null)
     localStorage.clear()
     client.resetStore()
+    // refresh query results
+    userQuery.refetch()
 
     if (page === 'add' || page === 'login') {
       setPage('books')
@@ -48,8 +50,12 @@ const App = () => {
       </div>
 
       <Notify errorMessage={errorMessage} />
-      <Authors show={page === 'authors'} />
-      <Books show={page === 'books'} />
+      <Authors show={page === 'authors'} handleError={notify} />
+      <Books
+        show={page === 'books'}
+        user={userQuery.data ? userQuery.data.me : null}
+        handleError={notify}
+      />
       <NewBook
         show={page === 'add'}
         handleError={notify}

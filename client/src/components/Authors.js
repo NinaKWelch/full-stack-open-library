@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation } from '@apollo/client'
 import { ALL_AUTHORS, UPDATE_AUTHOR } from '../queries'
 
-const Authors = ({ show }) => {
+const Authors = ({ show, handleError }) => {
   const [name, setName] = useState('')
   const [born, setBorn] = useState('')
 
@@ -25,6 +25,10 @@ const Authors = ({ show }) => {
 
   if (loading) {
     return <div>loading...</div>
+  }
+
+  if (error) {
+    handleError(error.message)
   }
 
   return (
