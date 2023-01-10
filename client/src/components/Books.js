@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@apollo/client'
 import { ALL_BOOKS } from '../queries'
 
-const Books = ({ show, handleError }) => {
+const Books = ({ show }) => {
   const [author, setAuthor] = useState(null)
   const [genre, setGenre] = useState(null)
 

@@ -73,7 +73,6 @@ const resolvers = {
     bookCount: async () => Book.collection.countDocuments(),
     authorCount: async () => Author.collection.countDocuments(),
     allBooks: async (root, args) => {
-      console.log("BOOKS!")
       let books
       if (args.author) {
         const isAuthor = await Author.findOne({ name: args.author })
@@ -141,7 +140,6 @@ const resolvers = {
 
           if (updatedAuthor) {
             const book = new Book({ ...args, author: updatedAuthor })
-
             try {
               await book.save()
             } catch (err) {
