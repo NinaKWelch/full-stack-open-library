@@ -53,8 +53,9 @@ const typeDefs = gql`
     allAuthors: [Author!]!
     me: User
   }
+
   type Mutation {
-    addBook(title: String!, author: String!, published: Int!, genres: [String!]): Book!
+    addBook(title: String!, author: String!, published: Int!, genres: [String!]!): Book!
     editAuthor(name: String!, setBornTo: Int!): Author
     createUser(username: String!, favouriteGenre: String!): User
     login(username: String!, password: String!): Token
@@ -72,8 +73,8 @@ const resolvers = {
     bookCount: async () => Book.collection.countDocuments(),
     authorCount: async () => Author.collection.countDocuments(),
     allBooks: async (root, args) => {
+      console.log("BOOKS!")
       let books
-
       if (args.author) {
         const isAuthor = await Author.findOne({ name: args.author })
 
@@ -83,11 +84,14 @@ const resolvers = {
 
         if (isAuthor) {
           if (args.genre) {
-            books = await Book.find({ author: { $in: isAuthor._id }, genres: { $in: args.genre } })
+            books = await Book.find(
+              { author: { $in: isAuthor._id },
+              genres: { $in: args.genre } }
+            ).populate('author')
           }
 
           if (!args.genre) {
-            books = await Book.find({ author: { $in: isAuthor._id } })
+            books = await Book.find({ author: { $in: isAuthor._id } }).populate('author')
           }
         }
         
@@ -95,11 +99,12 @@ const resolvers = {
       }
 
       if (!args.author && args.genre) {
-        books = await Book.find({ genres: { $in: args.genre } })
+        books = await Book.find({ genres: { $in: args.genre } }).populate('author')
         return books
       }
 
-      books = await Book.find({})
+      books = await Book.find({}).populate('author')
+      
       return books
     },
     allAuthors: async (root, args) => {

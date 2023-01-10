@@ -27,7 +27,7 @@ const App = () => {
 
       <Authors show={page === 'authors'} />
 
-      <Books show={page === 'books'} />
+      <Books show={page === 'books'} handleError={notify} />
 
       <NewBook show={page === 'add'} handleError={notify} />
     </div>
