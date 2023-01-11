@@ -28,7 +28,7 @@ const Authors = ({ show, handleError }) => {
   }
 
   if (error) {
-    handleError(error.message)
+    handleError(error.message, 'error')
   }
 
   return (

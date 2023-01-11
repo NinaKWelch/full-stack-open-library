@@ -7,7 +7,7 @@ const LoginForm = ({ show, handleShow, handleError, setToken }) => {
   const [password, setPassword] = useState('')
   const [ login, { loading, error, data } ] = useMutation(LOGIN, {
     onError: (error) => {
-      handleError(error.graphQLErrors[0].message)
+      handleError(error.graphQLErrors[0].message, 'error')
     }
   })
 
@@ -23,6 +23,8 @@ const LoginForm = ({ show, handleShow, handleError, setToken }) => {
     event.preventDefault()
 
     login({ variables: { username, password } })
+    setUsername('')
+    setPassword('')
     handleShow('books')
   }
 
@@ -35,12 +37,12 @@ const LoginForm = ({ show, handleShow, handleError, setToken }) => {
   }
 
   if (error) {
-    handleError(error.message)
+    handleError(error.message, 'error')
   }
 
   return (
     <div>
-      <h2>LoginForm</h2>
+      <h2>login</h2>
       <form onSubmit={submit}>
         <div>
           username{' '}

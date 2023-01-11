@@ -1,11 +1,11 @@
-const Notify = ({ errorMessage }) => {
-  if ( !errorMessage ) {
+const Notify = ({ message }) => {
+  if ( !message ) {
     return null
   }
 
   return (
-    <div style={{ color: 'red' }}>
-      {errorMessage}
+    <div style={message.type === 'success' ? { color: 'green' } : { color: 'red' }}>
+      {message.content}
     </div>
   )
 }

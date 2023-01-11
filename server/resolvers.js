@@ -1,4 +1,4 @@
-const { UserInputError, AuthenticationError } = require('apollo-server')
+const { UserInputError, AuthenticationError } = require('@apollo/server')
 const jwt = require('jsonwebtoken')
 
 const { PubSub } = require('graphql-subscriptions')
@@ -98,16 +98,12 @@ const resolvers = {
 
       if (author) {
         try {
-          const updatedAuthor = await author.save()
-
-          if (updatedAuthor) {
-            const book = new Book({ ...args, author: updatedAuthor })
-            try {
-              await book.save()
-            } catch (err) {
-              handleError(err.message, args)
-            }
-
+          const book = new Book({ ...args, author: author })
+    
+          if (book) {
+            await book.save()
+            await author.save()
+    
             // subscription
             pubsub.publish('BOOK_ADDED', { bookAdded: book })
 
@@ -165,7 +161,7 @@ const resolvers = {
   },
   Subscription: {
     bookAdded: {
-      subscribe: () => pubsub.asyncIterator(['BOOK_ADDED']),
+      subscribe: () => pubsub.asyncIterator('BOOK_ADDED'),
     },
   },
 }

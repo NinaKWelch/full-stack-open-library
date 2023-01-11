@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { useApolloClient, useQuery } from '@apollo/client'
-import { CURRENT_USER } from './queries'
+import { useState, useEffect } from 'react'
+import { useApolloClient, useQuery, useSubscription } from '@apollo/client'
+import { CURRENT_USER, BOOK_ADDED } from './queries'
 import Notify from './components/Notify'
 import Authors from './components/Authors'
 import Books from './components/Books'
@@ -8,18 +8,26 @@ import NewBook from './components/NewBook'
 import LoginForm from './components/LoginForm'
 
 const App = () => {
-  const [errorMessage, setErrorMessage] = useState(null)
+  const [message, setMessage] = useState(null)
   const [page, setPage] = useState('authors')
   const [token, setToken] = useState(null)
   const client = useApolloClient()
   const userQuery = useQuery(CURRENT_USER)
-
-  const notify = (message) => {
-    setErrorMessage(message)
+  const { data, loading } = useSubscription(BOOK_ADDED)
+ 
+  const notify = (content, type) => {
+    setMessage({ content, type })
     setTimeout(() => {
-      setErrorMessage(null)
+      setMessage(null)
     }, 10000)
   }
+
+  useEffect(() => {
+    if (!loading && data) {
+      const subscriptionText = `${data.bookAdded.title} added`
+      notify(subscriptionText, 'success')
+    }
+  }, [data, loading])
 
   const logout = () => {
     setToken(null)
@@ -49,7 +57,7 @@ const App = () => {
         )}
       </div>
 
-      <Notify errorMessage={errorMessage} />
+      <Notify message={message} />
       <Authors show={page === 'authors'} handleError={notify} />
       <Books
         show={page === 'books'}

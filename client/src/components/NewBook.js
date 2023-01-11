@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useMutation, gql } from '@apollo/client'
+import { gql, useMutation } from '@apollo/client'
 import { CREATE_BOOK } from '../queries'
 
 const NewBook = ({ show, handleError }) => {
@@ -37,7 +37,7 @@ const NewBook = ({ show, handleError }) => {
       });
     },
     onError: (error) => {
-      handleError(error.graphQLErrors[0].message)
+      handleError(error.graphQLErrors[0].message, 'error')
     },
   })
 
@@ -64,6 +64,7 @@ const NewBook = ({ show, handleError }) => {
 
   return (
     <div>
+      <h2>add book</h2>
       <form onSubmit={submit}>
         <div>
           title

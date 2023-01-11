@@ -24,7 +24,7 @@ const Books = ({ show, user, handleError }) => {
   }
 
   if (bookQuery.error) {
-    handleError(bookQuery.error.message)
+    handleError(bookQuery.error.message, 'error')
   }
 
   return (
