@@ -12,7 +12,6 @@ const Books = ({ show, user, handleError }) => {
     }
   })
   const genreQuery = useQuery(ALL_GENRES)
-
   useEffect(() => {
     if (user) {
       setGenre(user.favouriteGenre)

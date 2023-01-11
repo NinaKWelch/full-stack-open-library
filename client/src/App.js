@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useApolloClient, useQuery, useSubscription } from '@apollo/client'
+import { useApolloClient, useQuery, useSubscription, gql } from '@apollo/client'
 import { CURRENT_USER, BOOK_ADDED } from './queries'
 import Notify from './components/Notify'
 import Authors from './components/Authors'
@@ -26,8 +26,33 @@ const App = () => {
     if (!loading && data) {
       const subscriptionText = `${data.bookAdded.title} added`
       notify(subscriptionText, 'success')
+
+      client.cache.modify({
+        fields: {
+          allBooks(existingBooks = []) {
+            const newBookRef = client.cache.writeFragment({
+              data: data.bookAdded,
+              fragment: gql`
+                fragment NewBook on Book {
+                  title
+                  author {
+                    name
+                    born
+                    bookCount
+                    id
+                  }
+                  published
+                  genres
+                  id
+                }
+              `
+            });
+            return [...existingBooks, newBookRef];
+          }
+        }
+      })
     }
-  }, [data, loading])
+  }, [client, data, loading])
 
   const logout = () => {
     setToken(null)

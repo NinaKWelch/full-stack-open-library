@@ -10,32 +10,32 @@ const NewBook = ({ show, handleError }) => {
   const [genres, setGenres] = useState([])
 
   const [ createBook ] = useMutation(CREATE_BOOK, {
-    update(cache, { data: { addBook } }) {
-      cache.modify({
-        fields: {
-          allBooks(existingBooks = []) {
-            const newBookRef = cache.writeFragment({
-              data: addBook,
-              fragment: gql`
-                fragment NewBook on Book {
-                  title
-                  author {
-                    name
-                    born
-                    bookCount
-                    id
-                  }
-                  published
-                  genres
-                  id
-                }
-              `
-            });
-            return [...existingBooks, newBookRef];
-          }
-        }
-      });
-    },
+    // update(cache, { data: { addBook } }) {
+    //   cache.modify({
+    //     fields: {
+    //       allBooks(existingBooks = []) {
+    //         const newBookRef = cache.writeFragment({
+    //           data: addBook,
+    //           fragment: gql`
+    //             fragment NewBook on Book {
+    //               title
+    //               author {
+    //                 name
+    //                 born
+    //                 bookCount
+    //                 id
+    //               }
+    //               published
+    //               genres
+    //               id
+    //             }
+    //           `
+    //         });
+    //         return [...existingBooks, newBookRef];
+    //       }
+    //     }
+    //   });
+    // },
     onError: (error) => {
       handleError(error.graphQLErrors[0].message, 'error')
     },
