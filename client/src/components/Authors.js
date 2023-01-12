@@ -23,68 +23,74 @@ const Authors = ({ show, handleError }) => {
     return null
   }
 
-  if (loading) {
-    return <div>loading...</div>
-  }
-
   if (error) {
     handleError(error.message, 'error')
+    return null
   }
 
   return (
     <div>
       <h2>authors</h2>
-      {!data ? (
-        <p>No authors</p>
+      {loading ? (
+        <div>loading...</div>
       ) : (
-        <div>
-          <table>
-            <tbody>
-              <tr>
-                <th></th>
-                <th>born</th>
-                <th>books</th>
-              </tr>
-              {data.allAuthors.map((a) => (
-                <tr key={a.name}>
-                  <td>{a.name}</td>
-                  <td>{a.born}</td>
-                  <td>{a.bookCount}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <h3>set birth year</h3>
-          <form onSubmit={submit}>
+        <>
+          {!data || data.allAuthors.length === 0 ? (
+            <p>no authors</p>
+          ) : (
             <div>
-              name{' '}
-              <select 
-                value={name ? name : setName(data.allAuthors[0].name)}
-                onChange={({ target }) => setName(target.value)}
-              >
-              {data.allAuthors.map((a) => (
-                  <option key={a.id} value={a.name}>{a.name}</option>
-                ))}
-              </select>
+              <table>
+                <tbody>
+                  <tr>
+                    <th></th>
+                    <th>born</th>
+                    <th>books</th>
+                  </tr>
+                  {data.allAuthors.length > 0 && data.allAuthors.map((a) => (
+                    <tr key={a.name}>
+                      <td>{a.name}</td>
+                      <td>{a.born}</td>
+                      <td>{a.bookCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {data.allAuthors.length > 0 && (
+                <>
+                  <h3>set birth year</h3>
+                  <form onSubmit={submit}>
+                    <div>
+                      name{' '}
+                      <select 
+                        value={name ? name : setName(data.allAuthors[0].name)}
+                        onChange={({ target }) => setName(target.value)}
+                      >
+                      {data.allAuthors.map((a) => (
+                          <option key={a.id} value={a.name}>{a.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      born{' '}
+                      <input
+                        type="number"
+                        value={born}
+                        onChange={({ target }) => setBorn(Number(target.value))}
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={name === '' || born === ''}
+                    >
+                      update author
+                    </button>
+                  </form>
+                </>
+              )}
             </div>
-            <div>
-              born{' '}
-              <input
-                type="number"
-                value={born}
-                onChange={({ target }) => setBorn(Number(target.value))}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={name === '' || born === ''}
-            >
-              update author
-            </button>
-          </form>
-        </div>
+          )}
+        </>
       )}
-
     </div>
   )
 }

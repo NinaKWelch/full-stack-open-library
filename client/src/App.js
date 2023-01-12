@@ -11,9 +11,10 @@ const App = () => {
   const [message, setMessage] = useState(null)
   const [page, setPage] = useState('authors')
   const [token, setToken] = useState(null)
+  const [currentUser, setCurrentUser] = useState(null)
   const client = useApolloClient()
   const userQuery = useQuery(CURRENT_USER)
-  const { data, loading } = useSubscription(BOOK_ADDED)
+  const { data } = useSubscription(BOOK_ADDED)
  
   const notify = (content, type) => {
     setMessage({ content, type })
@@ -22,8 +23,24 @@ const App = () => {
     }, 10000)
   }
 
+  // update token and currentUser on page refresh if user hasn't logged out
   useEffect(() => {
-    if (!loading && data) {
+    if (!token) {
+      const storedToken = localStorage.getItem('phonenumbers-user-token')
+
+      if (storedToken) {
+        setToken(storedToken) 
+        userQuery.refetch()
+      }
+    }
+
+    if (userQuery.data) {
+      setCurrentUser(userQuery.data.me)
+    }
+  },[token, userQuery])
+
+  useEffect(() => {
+    if (data) {
       const subscriptionText = `${data.bookAdded.title} added`
       notify(subscriptionText, 'success')
 
@@ -46,13 +63,20 @@ const App = () => {
                   id
                 }
               `
-            });
-            return [...existingBooks, newBookRef];
+            })
+            return [...existingBooks, newBookRef]
           }
         }
       })
     }
-  }, [client, data, loading])
+  }, [data]) // eslint-disable-line
+
+  const login = (str) => {
+    setToken(str)
+    localStorage.setItem('phonenumbers-user-token', str)
+    // refresh query results
+    userQuery.refetch()
+  }
 
   const logout = () => {
     setToken(null)
@@ -86,7 +110,7 @@ const App = () => {
       <Authors show={page === 'authors'} handleError={notify} />
       <Books
         show={page === 'books'}
-        user={userQuery.data ? userQuery.data.me : null}
+        user={currentUser}
         handleError={notify}
       />
       <NewBook
@@ -97,7 +121,7 @@ const App = () => {
         show={page === 'login'}
         handleShow={setPage}
         handleError={notify}
-        setToken={setToken}
+        handleLogin={login}
       />
     </div>
   )

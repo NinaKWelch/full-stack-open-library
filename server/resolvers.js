@@ -20,61 +20,93 @@ const resolvers = {
     authorCount: async () => Author.collection.countDocuments(),
     allBooks: async (root, args) => {
       let books
+
       if (args.author) {
-        const isAuthor = await Author.findOne({ name: args.author })
+        try {
+          const author = await Author.findOne({ name: args.author })
 
-        if (!isAuthor) {
-          return null
-        }
-
-        if (isAuthor) {
-          if (args.genre) {
-            books = await Book.find(
-              { author: { $in: isAuthor._id },
-              genres: { $in: args.genre } }
-            ).populate('author')
+          if (!author) {
+            return null
           }
 
-          if (!args.genre) {
-            books = await Book.find({ author: { $in: isAuthor._id } }).populate('author')
+          if (author) {
+            try {
+              if (args.genre) {
+                books = await Book.find(
+                  { author: { $in: author._id },
+                  genres: { $in: args.genre } }
+                ).populate('author')
+              }
+    
+              if (!args.genre) {
+                books = await Book.find({ author: { $in: author._id } }).populate('author')
+              }
+            } catch (err) {
+              handleError(err.message, args)
+            }
           }
+        } catch (err) {
+          handleError(err.message, args)
         }
-        
+
         return books
       }
 
       if (!args.author && args.genre) {
-        books = await Book.find({ genres: { $in: args.genre } }).populate('author')
+        try {
+          books = await Book.find({ genres: { $in: args.genre } }).populate('author')
+        } catch (err) {
+          handleError(err.message, args)
+        }
+
         return books
       }
 
-      books = await Book.find({}).populate('author')
-      
+      try {
+        books = await Book.find({}).populate('author')
+      } catch (err) {
+        handleError(err.message, args)
+      }
+
       return books
     },
     allAuthors: async (root, args) => {
-      const authors = await Author.find({})
-      return authors
+      try {
+        const authors = await Author.find({})
+        return authors
+      } catch (err) {
+        handleError(err.message, args)
+      }
     },
     allGenres: async (root, args) => {
       let allGenres = []
-      const books = await Book.find({})
 
-      if (books) {
-        books.forEach((book) => {
-          book.genres.forEach((genre) => {
-            if (!allGenres.includes(genre)) {
-              allGenres = allGenres.concat(genre)
-            }
+      try {
+        const books = await Book.find({})
+
+        if (books && books.length > 0) {
+          books.forEach((book) => {
+            book.genres.forEach((genre) => {
+              if (!allGenres.includes(genre)) {
+                allGenres = allGenres.concat(genre)
+              }
+            })
           })
-        })
+        }
+      } catch (err) {
+        handleError(err.message, args)
       }
-      
+
       return allGenres
     },
     me: (root, args, { currentUser }) => {
       return currentUser
     }
+  },
+  Author: {
+    bookCount: (root) => {
+      return root.books.length
+    },
   },
   Mutation: {
     addBook: async (root, args, { currentUser }) => {
@@ -83,35 +115,34 @@ const resolvers = {
         throw new AuthenticationError('not authenticated')
       }
 
-      const isAuthor = await Author.findOne({ name: args.author })
-      let author
-      
-      // check if author already exists
-      if (isAuthor) {
-        author = isAuthor
-        author.bookCount++
-      }
+      try {
+        // check if author already exists
+        const isAuthor = await Author.findOne({ name: args.author })
+        const author = isAuthor ? isAuthor : new Author({ name: args.author, books: [], bookCount: 0 })
 
-      if (!isAuthor) {
-        author = new Author({ name: args.author, bookCount: 1 })
-      }
-
-      if (author) {
-        try {
+        if (author) {
           const book = new Book({ ...args, author: author })
-    
-          if (book) {
+          
+          try {
             await book.save()
-            await author.save()
-    
+            author.books = author.books.concat(book)
+
+            try {
+              await author.save()
+            } catch (err) {
+              handleError(err.message, args)
+            }
+
             // subscription
             pubsub.publish('BOOK_ADDED', { bookAdded: book })
-
-            return book
+          } catch (err) {
+            handleError(err.message, args)
           }
-        } catch (err) {
-          handleError(err.message, args)
+
+          return book
         }
+      } catch (err) {
+        handleError(err.message, args)
       }
     },
     editAuthor: async (root, args, { currentUser }) => {
@@ -120,22 +151,26 @@ const resolvers = {
         throw new AuthenticationError('not authenticated')
       }
 
-      const author = await Author.findOne({ name: args.name })
+      try {
+        const author = await Author.findOne({ name: args.name })
 
-      if (!author) {
-        return null
-      }
-
-      if (author) {
-        author.born = args.setBornTo
-
-        try {
-          await author.save()
-        } catch (err) {
-          handleError(err.message, args)
+        if (!author) {
+          return null
         }
   
+        if (author) {
+          author.born = args.setBornTo
+
+          try {
+            await author.save()
+          } catch (err) {
+            handleError(err.message, args)
+          }
+        }
+
         return author
+      } catch (err) {
+        handleError(err.message, args)
       }
     },
     createUser: async (root, args) => {
@@ -150,13 +185,17 @@ const resolvers = {
       return user
     },
     login: async (root, args) => {
-      const user = await User.findOne({ username: args.username })
-  
-      if ( !user || args.password !== 'secret' ) {
-        handleError('wrong credentials', args.password)
+      try {
+        const user = await User.findOne({ username: args.username })
+
+        if ( !user || args.password !== 'secret' ) {
+          handleError('wrong credentials', args.password)
+        }
+
+        return { value: jwt.sign({ id: user._id }, process.env.JWT_SECRET) }
+      } catch (err) {
+        handleError(err.message, args)
       }
-  
-      return { value: jwt.sign({ id: user._id }, process.env.JWT_SECRET) }
     },
   },
   Subscription: {

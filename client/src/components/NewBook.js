@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
-import { CREATE_BOOK } from '../queries'
+import { CREATE_BOOK, ALL_GENRES } from '../queries'
 
 const NewBook = ({ show, handleError }) => {
   const [title, setTitle] = useState('')
@@ -30,12 +30,34 @@ const NewBook = ({ show, handleError }) => {
     //               id
     //             }
     //           `
-    //         });
+    //         })
     //         return [...existingBooks, newBookRef];
     //       }
     //     }
-    //   });
+    //   })
     // },
+    update(cache, { data: { addBook } }) {
+      cache.modify({
+        fields: {
+          allAuthors(existingAuthors = []) {
+            const updatedAuthorRef = cache.writeFragment({
+              data: addBook.author,
+              fragment: gql`
+                fragment UpdatedAuthor on Author {
+                  name
+                  born
+                  bookCount
+                  id
+                }
+              `
+            })
+            // remove author if already listed and add updated or new author to list
+            existingAuthors.filter((author) => author !== updatedAuthorRef).concat(updatedAuthorRef)
+          }
+        }
+      })
+    },
+    refetchQueries: [ {query: ALL_GENRES} ],
     onError: (error) => {
       handleError(error.graphQLErrors[0].message, 'error')
     },
@@ -93,7 +115,7 @@ const NewBook = ({ show, handleError }) => {
             value={genre}
             onChange={({ target }) => setGenre(target.value)}
           />
-          <button onClick={addGenre} type="button">
+          <button onClick={addGenre} type="button" disabled={genre === ''}>
             add genre
           </button>
         </div>
