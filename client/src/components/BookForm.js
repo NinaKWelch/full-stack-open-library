@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
 import { CREATE_BOOK, ALL_GENRES } from '../queries'
 
-const NewBook = ({ show, handleError }) => {
+const BookForm = ({ show, handleError }) => {
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [published, setPublished] = useState('')
@@ -10,32 +10,6 @@ const NewBook = ({ show, handleError }) => {
   const [genres, setGenres] = useState([])
 
   const [ createBook ] = useMutation(CREATE_BOOK, {
-    // update(cache, { data: { addBook } }) {
-    //   cache.modify({
-    //     fields: {
-    //       allBooks(existingBooks = []) {
-    //         const newBookRef = cache.writeFragment({
-    //           data: addBook,
-    //           fragment: gql`
-    //             fragment NewBook on Book {
-    //               title
-    //               author {
-    //                 name
-    //                 born
-    //                 bookCount
-    //                 id
-    //               }
-    //               published
-    //               genres
-    //               id
-    //             }
-    //           `
-    //         })
-    //         return [...existingBooks, newBookRef];
-    //       }
-    //     }
-    //   })
-    // },
     update(cache, { data: { addBook } }) {
       cache.modify({
         fields: {
@@ -89,21 +63,25 @@ const NewBook = ({ show, handleError }) => {
       <h2>add book</h2>
       <form onSubmit={submit}>
         <div>
-          title
+          title{' '}
           <input
+            type="text"
             value={title}
+            minLength="2"
             onChange={({ target }) => setTitle(target.value)}
           />
         </div>
         <div>
-          author
+          author{' '}
           <input
+            type="text"
             value={author}
+            minLength="4"
             onChange={({ target }) => setAuthor(target.value)}
           />
         </div>
         <div>
-          published
+          published{' '}
           <input
             type="number"
             value={published}
@@ -112,11 +90,12 @@ const NewBook = ({ show, handleError }) => {
         </div>
         <div>
           <input
+            type="text"
             value={genre}
             onChange={({ target }) => setGenre(target.value)}
           />
           <button onClick={addGenre} type="button" disabled={genre === ''}>
-            add genre
+            add genre{' '}
           </button>
         </div>
         <div>genres: {genres.join(' ')}</div>
@@ -131,4 +110,4 @@ const NewBook = ({ show, handleError }) => {
   )
 }
 
-export default NewBook
+export default BookForm

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useApolloClient, useQuery, useSubscription, gql } from '@apollo/client'
 import { CURRENT_USER, BOOK_ADDED } from './queries'
+import TopNavigation from './components/TopNavigation'
 import Notify from './components/Notify'
 import Authors from './components/Authors'
 import Books from './components/Books'
-import NewBook from './components/NewBook'
+import BookForm from './components/BookForm'
 import LoginForm from './components/LoginForm'
 
 const App = () => {
@@ -92,28 +93,19 @@ const App = () => {
 
   return (
     <div>
-      <div>
-        <button onClick={() => setPage('authors')}>authors</button>
-        <button onClick={() => setPage('books')}>books</button>
-        {token ? (
-          <>
-            <button onClick={() => setPage('add')}>add book</button>
-            <button onClick={() => logout()}>logout</button>
-          </>
-          
-        ) : (
-          <button onClick={() => setPage('login')}>login</button>
-        )}
-      </div>
-
+      <TopNavigation token={token} handlePage={setPage} handleLogout={() => logout()} />
       <Notify message={message} />
-      <Authors show={page === 'authors'} handleError={notify} />
+      <Authors
+        show={page === 'authors'}
+        user={currentUser}
+        handleError={notify}
+      />
       <Books
         show={page === 'books'}
         user={currentUser}
         handleError={notify}
       />
-      <NewBook
+      <BookForm
         show={page === 'add'}
         handleError={notify}
       />

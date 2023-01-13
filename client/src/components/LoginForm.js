@@ -45,6 +45,7 @@ const LoginForm = ({ show, handleShow, handleError, handleLogin }) => {
         <div>
           username{' '}
           <input
+            type="text"
             value={username}
             onChange={({ target }) => setUsername(target.value)}
           />

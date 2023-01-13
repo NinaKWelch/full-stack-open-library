@@ -4,7 +4,9 @@ const Notify = ({ message }) => {
   }
 
   return (
-    <div style={message.type === 'success' ? { color: 'green' } : { color: 'red' }}>
+    <div
+      style={message.type === 'success'  ? { color: 'green' }  : { color: 'red' }}
+    >
       {message.content}
     </div>
   )
